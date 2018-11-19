@@ -224,6 +224,8 @@ void float_class_func (struct float_data *this,
                      "Float channel -" 
                      " Channel for storing and sending float value. \r\n"
                      " create float newname\r\n"
+                     " write float value\r\n"
+                     "  -returns float representation of value\r\n"
                      " setup newname float_value \r\n"
                      " read newname\r\n"
                      " write newname\r\n"
@@ -262,10 +264,14 @@ void float_class_func (struct float_data *this,
       return_float (context, paramtype, returnv, this->value);
       break;
    case write_rmcios:
-      if (this == 0)
-         break;
       if (num_params > 0)
       {
+         if (this == 0)
+         {
+            return_float (context, paramtype, returnv, 
+                       param_to_float (context, paramtype, param, 0) );
+            break;
+         }
          this->value = param_to_float (context, paramtype, param, 0);
       }
       write_f (context, linked_channels (context, id), this->value);
@@ -332,10 +338,16 @@ void int_class_func (struct int_data *this,
       return_int (context, paramtype, returnv, this->value);
       break;
    case write_rmcios:
-      if (this == 0)
-         break;
+  
       if (num_params > 0)
       {
+         if (this == 0)
+         {  
+               return_int (context, paramtype, returnv, 
+                     param_to_int (context, paramtype, param, 0));
+            break;
+         }
+
          this->value = param_to_int (context, paramtype, param, 0);
       }
       write_i (context, linked_channels (context, id), this->value);
@@ -350,8 +362,6 @@ struct string_data
 {
    char *buffer;
    int buffer_size;
-   // Register for safe multithreading:
-   int share_register;
 };
 
 void string_class_func (struct string_data *this,
@@ -390,7 +400,6 @@ void string_class_func (struct string_data *this,
       
       if (this == 0)
          break;
-      this->share_register = 0;
       this->buffer_size = 32;
       this->buffer = (char *) allocate_storage (context, this->buffer_size, 0);
       if (this->buffer == 0)
@@ -410,9 +419,6 @@ void string_class_func (struct string_data *this,
       if (num_params < 1)
          break;
       {
-         // Lock the channel for writing:
-         while (request_write_resource (&this->share_register) == 0);
-
          int pslen = param_string_length (context, paramtype, param, 0) + 1;
          int max_size = 0;
          if (num_params >= 2)
@@ -431,41 +437,32 @@ void string_class_func (struct string_data *this,
          }
          param_to_string (context, paramtype, param, 0,
                           this->buffer_size, this->buffer);
-
-         // Unlock the channel
-         stop_write_resource (&this->share_register);
-
       }
       break;
 
    case read_rmcios:
       if (this == 0)
          break;
-
-      // Lock the resource from writing while reading.
-      while (request_read_resource (&this->share_register) == 0);
       return_string (context, paramtype, returnv, this->buffer);
-      // Release resource from reading
-      stop_read_resource (&this->share_register);
       break;
    case write_rmcios:
-      if (this == 0)
-         break;
       if (num_params > 0)
       {
-         // Lock the channel for writing:
-         while (request_write_resource (&this->share_register) == 0);
+         if (this == 0)
+         {
+            int blen=param_string_alloc_size(context, paramtype, param,0) ;
+            {
+               char buffer[blen] ;
+               const char *s= param_to_string (context, paramtype, param, 0,
+                                               blen, buffer) ;
+               return_string(context,paramtype,returnv,s) ;
+            }
+            break ;
+         }
          param_to_string (context, paramtype, param, 0,
                           this->buffer_size, this->buffer);
-         // Unlock the channel
-         stop_write_resource (&this->share_register);
       }
-
-      // Lock the resource from writing while reading.
-      while (request_read_resource (&this->share_register) == 0);
       write_str (context, linked_channels (context, id), this->buffer, 0);
-      // Unlock the channel
-      stop_read_resource (&this->share_register);
       break;
    }
 }

@@ -477,8 +477,7 @@ void hex_encoder_class_func (struct hex_data *this,
       break;
 
    case read_rmcios:
-      if (this == 0)
-         break;
+      if (this == 0 || this->data==0 ) break;
       return_buffer (context, paramtype, returnv, this->data,
                      this->dataindex + 1);
       break;
@@ -578,8 +577,7 @@ void hex_decoder_class_func (struct hex_data *this,
       break;
 
    case read_rmcios:
-      if (this == 0)
-         break;
+      if (this == 0 || this->data==0) break;
       return_buffer (context, paramtype, returnv, this->data,
                      this->dataindex + 1);
       break;

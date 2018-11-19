@@ -599,114 +599,166 @@ void crc16_class_func (struct crc16_data *this,
 {
    switch (function)
    {
-   case help_rmcios:
-      return_string (context, paramtype, returnv,
-                     "CRC channel - "
-                     "channel for creating and checking CRC checksums.\r\n"
-                     "create crc newname | bits(16)\r\n"
-                     "write crc data\r\n"
-                     "  -return the crc for data\r\n"
-                     "setup newname sum(0) | Poly(0x8005) | Init(0) |"
-                     " RefIn(0) | RefOut(0) | XorOut(0x0000)   \r\n"
-                     "  -Set the stored sum, and calculation polynomial\r\n"
-                     "setup newname\r\n"
-                     "  -Reset the sum\r\n"
-                     "write newname data\r\n"
-                     "  -Sum the data in buffer to the checksum\r\n"
-                     "write newname\r\n"
-                     "  -Sends checksum to linked channels.\r\n"
-                     "  -Reset the sum\r\n"
-                     "read newname\r\n"
-                     "  -Returns stored checksum\r\n"
-                     "link newname channel\r\n");
-      break;
+      case help_rmcios:
+         return_string (context, paramtype, returnv,
+               "CRC channel - "
+               "channel for creating and checking CRC checksums.\r\n"
+               "create crc newname | bits(16)\r\n"
+               "write crc data\r\n"
+               "  -return the crc for data\r\n"
+               "setup newname sum(0) | Poly(0x8005) | Init(0) |"
+               " RefIn(0) | RefOut(0) | XorOut(0x0000)   \r\n"
+               "  -Set the stored sum, and calculation polynomial\r\n"
+               "setup newname\r\n"
+               "  -Reset the sum\r\n"
+               "write newname data\r\n"
+               "  -Sum the data in buffer to the checksum\r\n"
+               "write newname\r\n"
+               "  -Sends checksum to linked channels.\r\n"
+               "  -Reset the sum\r\n"
+               "read newname\r\n"
+               "  -Returns stored checksum\r\n"
+               "link newname channel\r\n");
+         break;
 
-   case create_rmcios:
-      if (num_params < 1)
-         break;
-      // allocate new data
-      this = (struct crc16_data *) 
-              allocate_storage (context, sizeof (struct crc16_data), 0);   
-      if (this == 0)
-         break;
-      this->CRC16 = 0;
-      this->poly = 0x8005;
-      this->crc16table = crc16table_0x8005;
-      this->init = 0;
-      this->refin = 0;
-      this->refout = 0;
-      this->xor_out = 0;
-      // create the channel
-      create_channel_param (context, paramtype, param, 0, 
-                            (class_rmcios) crc16_class_func, this); 
-      break;
-
-   case setup_rmcios:
-      if (this == 0)
-         break;
-      this->CRC16 = this->init;
-      if (num_params < 1)
-         break;
-      this->CRC16 = param_to_integer (context, paramtype, param, 0);
-      if (num_params < 2)
-         break;
-      this->poly = param_to_integer (context, paramtype, param, 1);
-      switch (this->poly)
-      {
-      case 0x8005:
+      case create_rmcios:
+         if (num_params < 1)
+            break;
+         // allocate new data
+         this = (struct crc16_data *) 
+            allocate_storage (context, sizeof (struct crc16_data), 0);   
+         if (this == 0)
+            break;
+         this->CRC16 = 0;
+         this->poly = 0x8005;
          this->crc16table = crc16table_0x8005;
+         this->init = 0;
+         this->refin = 0;
+         this->refout = 0;
+         this->xor_out = 0;
+         // create the channel
+         create_channel_param (context, paramtype, param, 0, 
+               (class_rmcios) crc16_class_func, this); 
          break;
-      default: // Allocate and calculate new lookup table
+
+      case setup_rmcios:
+         if (this == 0)
+            break;
+         this->CRC16 = this->init;
+         if (num_params < 1)
+            break;
+         this->CRC16 = param_to_integer (context, paramtype, param, 0);
+         if (num_params < 2)
+            break;
+         this->poly = param_to_integer (context, paramtype, param, 1);
+         switch (this->poly)
          {
-            unsigned short index;
-            unsigned short r;
-            unsigned short *t;
-            t = (unsigned short *) allocate_storage (context,
-                                                     256 *
-                                                     sizeof (unsigned
-                                                             short), 0);
-            for (index = 0; index < 256; index++)
-            {
-               int i;
-               r = index << 8;
-               for (i = 0; i < 8; i++)
+            case 0x8005:
+               this->crc16table = crc16table_0x8005;
+               break;
+            default: // Allocate and calculate new lookup table
                {
-                  if (r & 0x8000)
-                     r = (r << 1) ^ this->poly;
-                  else
-                     r <<= 1;
+                  unsigned short index;
+                  unsigned short r;
+                  unsigned short *t;
+                  t = (unsigned short *) allocate_storage (context,
+                        256 *
+                        sizeof (unsigned
+                           short), 0);
+                  for (index = 0; index < 256; index++)
+                  {
+                     int i;
+                     r = index << 8;
+                     for (i = 0; i < 8; i++)
+                     {
+                        if (r & 0x8000)
+                           r = (r << 1) ^ this->poly;
+                        else
+                           r <<= 1;
+                     }
+                     t[index] = r & 0xFFFF;
+                  }
+                  this->crc16table = t;
                }
-               t[index] = r & 0xFFFF;
-            }
-            this->crc16table = t;
+               break;
          }
+         if (num_params < 3)
+            break;
+         this->init = param_to_integer (context, paramtype, param, 2);
+         this->CRC16 = this->init;
+         if (num_params < 4)
+            break;
+         this->refin = param_to_integer (context, paramtype, param, 3);
+         if (num_params < 5)
+            break;
+         this->refout = param_to_integer (context, paramtype, param, 4);
+         if (num_params < 6)
+            break;
+         this->xor_out = param_to_integer (context, paramtype, param, 5);
          break;
-      }
-      if (num_params < 3)
-         break;
-      this->init = param_to_integer (context, paramtype, param, 2);
-      this->CRC16 = this->init;
-      if (num_params < 4)
-         break;
-      this->refin = param_to_integer (context, paramtype, param, 3);
-      if (num_params < 5)
-         break;
-      this->refout = param_to_integer (context, paramtype, param, 4);
-      if (num_params < 6)
-         break;
-      this->xor_out = param_to_integer (context, paramtype, param, 5);
-      break;
 
-   case read_rmcios:
-      if (this == 0)
-         break;
-      return_int (context, paramtype, returnv, this->CRC16);
-      break;
+      case read_rmcios:
+         if (this == 0)
+            break;
 
-   case write_rmcios:
-      if (this == 0)    // Default (modbus CRC)
-      {
-         unsigned short CRC16 = 0;
+         unsigned short CRC16;
+         if (this->refout == 1)
+            CRC16 =
+               this->
+               xor_out ^ (BitReverseTable256[this->CRC16 >> 8] |
+                     BitReverseTable256[this->CRC16 & 0xFF] << 8);
+         else
+            CRC16 = this->xor_out ^ this->CRC16;
+
+         return_int (context, paramtype, returnv, CRC16);
+         break;
+
+      case write_rmcios:
+         if (this == 0)    // Default (modbus CRC)
+         {
+            unsigned short CRC16 = 0;
+            int blen = param_buffer_alloc_size (context, paramtype, param, 0);
+            {
+               char buffer[blen];
+               struct buffer_rmcios p;
+               int i;
+               p = param_to_buffer (context, paramtype, param, 0, blen, buffer);
+               char *input = p.data;
+               for (i = 0; i < p.length; i++)
+               {
+                  unsigned char byte = *(unsigned char *) input++;
+                  // Reflect input
+                  byte = BitReverseTable256[byte];
+                  unsigned short tableValue =
+                     crc16table_0x8005[((CRC16 >> 8) ^ byte) & SHIFTER];
+                  CRC16 = (CRC16 << 8) ^ tableValue;
+               }
+
+               // Reflect output
+               return_int (context, paramtype, returnv,
+                     BitReverseTable256[CRC16 >> 8] |
+                     BitReverseTable256[CRC16 & 0xFF] << 8);
+            }
+            break;
+         }
+         if (num_params < 1)       // Calculate and send
+         {
+            unsigned short CRC16;
+            if (this->refout == 1)
+               CRC16 =
+                  this->
+                  xor_out ^ (BitReverseTable256[this->CRC16 >> 8] |
+                        BitReverseTable256[this->CRC16 & 0xFF] << 8);
+            else
+               CRC16 = this->xor_out ^ this->CRC16;
+
+            write_binary (context, linked_channels (context, id),
+                  (char *) &CRC16, 2, 0, 0);
+            return_int (context, paramtype, returnv, CRC16);
+            this->CRC16 = this->init;
+            break;
+         }
+
          int blen = param_buffer_alloc_size (context, paramtype, param, 0);
          {
             char buffer[blen];
@@ -717,56 +769,14 @@ void crc16_class_func (struct crc16_data *this,
             for (i = 0; i < p.length; i++)
             {
                unsigned char byte = *(unsigned char *) input++;
-               // Reflect input
-               byte = BitReverseTable256[byte];
+               if (this->refin == 1)
+                  byte = BitReverseTable256[byte];
                unsigned short tableValue =
-                  crc16table_0x8005[((CRC16 >> 8) ^ byte) & SHIFTER];
-               CRC16 = (CRC16 << 8) ^ tableValue;
+                  this->crc16table[(((this->CRC16) >> 8) ^ byte) & SHIFTER];
+               this->CRC16 = ((this->CRC16) << 8) ^ tableValue;
             }
-
-            // Reflect output
-            return_int (context, paramtype, returnv,
-                        BitReverseTable256[CRC16 >> 8] |
-                        BitReverseTable256[CRC16 & 0xFF] << 8);
          }
          break;
-      }
-      if (num_params < 1)       // Calculate and send
-      {
-         unsigned short CRC16;
-         if (this->refout == 1)
-            CRC16 =
-               this->
-               xor_out ^ (BitReverseTable256[this->CRC16 >> 8] |
-                          BitReverseTable256[this->CRC16 & 0xFF] << 8);
-         else
-            CRC16 = this->xor_out ^ this->CRC16;
-
-         write_binary (context, linked_channels (context, id),
-                       (char *) &CRC16, 2, 0, 0);
-         return_int (context, paramtype, returnv, CRC16);
-         this->CRC16 = this->init;
-         break;
-      }
-
-      int blen = param_buffer_alloc_size (context, paramtype, param, 0);
-      {
-         char buffer[blen];
-         struct buffer_rmcios p;
-         int i;
-         p = param_to_buffer (context, paramtype, param, 0, blen, buffer);
-         char *input = p.data;
-         for (i = 0; i < p.length; i++)
-         {
-            unsigned char byte = *(unsigned char *) input++;
-            if (this->refin == 1)
-               byte = BitReverseTable256[byte];
-            unsigned short tableValue =
-               this->crc16table[(((this->CRC16) >> 8) ^ byte) & SHIFTER];
-            this->CRC16 = ((this->CRC16) << 8) ^ tableValue;
-         }
-      }
-      break;
    }
 }
 
