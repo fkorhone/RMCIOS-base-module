@@ -62,13 +62,13 @@ void joint_class_func (void *data,
                        const struct context_rmcios *context, int id,
                        enum function_rmcios function,
                        enum type_rmcios paramtype,
-                       union param_rmcios returnv,
+                       struct combo_rmcios *returnv,
                        int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "joint channel for grouping links.\r\n"
                      " create joint newname\r\n"
                      " setup newname params #call setup on linked channels\r\n"
@@ -109,13 +109,13 @@ void trigger_class_func (struct trigger_data *this,
                          const struct context_rmcios *context, int id,
                          enum function_rmcios function,
                          enum type_rmcios paramtype,
-                         union param_rmcios returnv,
+                         struct combo_rmcios *returnv,
                          int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "trigger channel for convering data into triggers. "
                      "(calls without parameters) \r\n"
                      " create trigger newname #create new trigger\r\n"
@@ -174,7 +174,7 @@ void trigger_class_func (struct trigger_data *this,
          context->run_channel (context, linked_channels (context, id),
                                function,
                                paramtype,
-                               (union param_rmcios) 0,
+                               0,
                                0, (const union param_rmcios) 0);
          break;
       }
@@ -189,14 +189,14 @@ void version_class_func (void *data,
                          const struct context_rmcios *context, int id,
                          enum function_rmcios function,
                          enum type_rmcios paramtype,
-                         union param_rmcios returnv,
+                         struct combo_rmcios *returnv,
                          int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case read_rmcios:
       {
-         return_string (context, paramtype, returnv,
+         return_string (context, returnv,
                         "compile time:" __DATE__ " " __TIME__);
       }
    }
@@ -214,13 +214,13 @@ void float_class_func (struct float_data *this,
                        const struct context_rmcios *context, int id,
                        enum function_rmcios function,
                        enum type_rmcios paramtype,
-                       union param_rmcios returnv,
+                       struct combo_rmcios *returnv,
                        int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "Float channel -" 
                      " Channel for storing and sending float value. \r\n"
                      " create float newname\r\n"
@@ -261,15 +261,15 @@ void float_class_func (struct float_data *this,
    case read_rmcios:
       if (this == 0)
          break;
-      return_float (context, paramtype, returnv, this->value);
+      return_float (context, returnv, this->value);
       break;
    case write_rmcios:
       if (num_params > 0)
       {
          if (this == 0)
          {
-            return_float (context, paramtype, returnv, 
-                       param_to_float (context, paramtype, param, 0) );
+            return_float (context, returnv, 
+                          param_to_float (context, paramtype, param, 0) );
             break;
          }
          this->value = param_to_float (context, paramtype, param, 0);
@@ -291,13 +291,13 @@ void int_class_func (struct int_data *this,
                      const struct context_rmcios *context, int id,
                      enum function_rmcios function,
                      enum type_rmcios paramtype,
-                     union param_rmcios returnv,
+                     struct combo_rmcios *returnv,
                      int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "Int channel - "
                      "Channel for storing and sending integer value. \r\n"
                      " create int newname\r\n"
@@ -335,7 +335,7 @@ void int_class_func (struct int_data *this,
    case read_rmcios:
       if (this == 0)
          break;
-      return_int (context, paramtype, returnv, this->value);
+      return_int (context, returnv, this->value);
       break;
    case write_rmcios:
   
@@ -343,7 +343,7 @@ void int_class_func (struct int_data *this,
       {
          if (this == 0)
          {  
-               return_int (context, paramtype, returnv, 
+               return_int (context, returnv, 
                      param_to_int (context, paramtype, param, 0));
             break;
          }
@@ -368,13 +368,13 @@ void string_class_func (struct string_data *this,
                         const struct context_rmcios *context, int id,
                         enum function_rmcios function,
                         enum type_rmcios paramtype,
-                        union param_rmcios returnv,
+                        struct combo_rmcios *returnv,
                         int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "String channel -"
                      " Channel for storing and sending strings. \r\n"
                      " create string newname\r\n"
@@ -443,7 +443,7 @@ void string_class_func (struct string_data *this,
    case read_rmcios:
       if (this == 0)
          break;
-      return_string (context, paramtype, returnv, this->buffer);
+      return_string (context, returnv, this->buffer);
       break;
    case write_rmcios:
       if (num_params > 0)
@@ -455,7 +455,7 @@ void string_class_func (struct string_data *this,
                char buffer[blen] ;
                const char *s= param_to_string (context, paramtype, param, 0,
                                                blen, buffer) ;
-               return_string(context,paramtype,returnv,s) ;
+               return_string(context, returnv, s);
             }
             break ;
          }
@@ -474,14 +474,14 @@ void chain_class_func (void *this,
                        const struct context_rmcios *context, int id,
                        enum function_rmcios function,
                        enum type_rmcios paramtype,
-                       union param_rmcios returnv,
+                       struct combo_rmcios *returnv,
                        int num_params, const union param_rmcios param)
 {
    int i, ch;
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "chain channel - form chains of channel calls \r\n"
                      "create chain ch1 ch2 ch3 ch4...\r\n"
                      "means:\r\n"
@@ -510,13 +510,13 @@ void binary_class_func (void *this,
                         const struct context_rmcios *context, int id,
                         enum function_rmcios function,
                         enum type_rmcios paramtype,
-                        union param_rmcios returnv,
+                        struct combo_rmcios *returnv,
                         int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "binary channel -"
                      " read and convert binary data byte by byte."
                      "Multiple byte values are processed in Big-endian form.\r\n"

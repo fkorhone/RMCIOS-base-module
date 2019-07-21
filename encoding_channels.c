@@ -143,13 +143,13 @@ void base64_encoder_class_func (struct base64_data *this,
                                 const struct context_rmcios *context, int id,
                                 enum function_rmcios function,
                                 enum type_rmcios paramtype,
-                                union param_rmcios returnv,
+                                struct combo_rmcios *returnv,
                                 int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "Base64 encoding channel channel "
                      "- channel for encoding binary data\r\n"
                      "create base64_encoder newname\r\n"
@@ -195,12 +195,12 @@ void base64_encoder_class_func (struct base64_data *this,
             {
                char c;
                c = base64_encode (&state, buf.data[i]);
-               return_buffer (context, paramtype, returnv, &c, 1);
+               return_buffer (context, returnv, &c, 1);
 
                if ((state >> 6) == 3)
                {
                   c = base64_encode (&state, 0);
-                  return_buffer (context, paramtype, returnv, &c, 1);
+                  return_buffer (context, returnv, &c, 1);
                }
             }
             if ((state >> 6) != 0)
@@ -208,14 +208,14 @@ void base64_encoder_class_func (struct base64_data *this,
                char c;
                c = base64_encode (&state, 0);
                // write the remaining symbol
-               return_buffer (context, paramtype, returnv, &c, 1);      
+               return_buffer (context, returnv, &c, 1);      
             }
             if ((state >> 6) == 3)
                // pad with "="
-               return_string (context, paramtype, returnv, "=");        
+               return_string (context, returnv, "=");        
             if ((state >> 6) == 2)
                // pad with "=="
-               return_string (context, paramtype, returnv, "==");       
+               return_string (context, returnv, "==");       
          }
          break;
       }
@@ -227,14 +227,14 @@ void base64_encoder_class_func (struct base64_data *this,
             char c;
             c = base64_encode (&(this->state), 0);
             // write the remaining symbol
-            return_buffer (context, paramtype, returnv, &c, 1); 
+            return_buffer (context, returnv, &c, 1); 
          }
          if (((this->state) >> 6) == 3)
             // pad with "="
-            return_string (context, paramtype, returnv, "=");   
+            return_string (context, returnv, "=");   
          if (((this->state) >> 6) == 2)
             // pad with "=="
-            return_string (context, paramtype, returnv, "==");  
+            return_string (context, returnv, "==");  
          this->state = 0;
       }
       else      
@@ -272,13 +272,13 @@ void base64_decoder_class_func (struct base64_data *this,
                                 const struct context_rmcios *context, int id,
                                 enum function_rmcios function,
                                 enum type_rmcios paramtype,
-                                union param_rmcios returnv,
+                                struct combo_rmcios *returnv,
                                 int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "Base64 decoding channel channel \r\n"
                      "create base64_decoder newname\r\n"
                      "write newname data\r\n"
@@ -325,7 +325,7 @@ void base64_decoder_class_func (struct base64_data *this,
                c = base64_decode (&state, buf.data[i]);
                ch = c;
                if (c >= 0)
-                  return_buffer (context, paramtype, returnv, &ch, 1);
+                  return_buffer (context, returnv, &ch, 1);
             }
          }
          break;
@@ -350,7 +350,7 @@ void base64_decoder_class_func (struct base64_data *this,
                int c;
                c = base64_decode (&(this->state), buf.data[i]);
                if (c >= 0)
-                  return_buffer (context, paramtype, returnv, (char *) &c, 1);
+                  return_buffer (context, returnv, (char *) &c, 1);
             }
          }
          break;
@@ -374,13 +374,13 @@ void hex_encoder_class_func (struct hex_data *this,
                              const struct context_rmcios *context, int id,
                              enum function_rmcios function,
                              enum type_rmcios paramtype,
-                             union param_rmcios returnv,
+                             struct combo_rmcios *returnv,
                              int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "Hex encoder. Encodes binary to hex string\r\n"
                      "create hex_encoder newname\r\n"
                      "setup newname bytes(0)\r\n"
@@ -433,7 +433,7 @@ void hex_encoder_class_func (struct hex_data *this,
    case write_rmcios:
       if (num_params < 1 && this != 0)
       {
-         return_buffer (context, paramtype, returnv, this->data,
+         return_buffer (context, returnv, this->data,
                         this->dataindex);
          this->dataindex = 0;
          break;
@@ -472,13 +472,13 @@ void hex_encoder_class_func (struct hex_data *this,
             }
          }
          buffer[plen * 2] = 0;
-         return_string (context, paramtype, returnv, buffer);
+         return_string (context, returnv, buffer);
       }
       break;
 
    case read_rmcios:
       if (this == 0 || this->data==0 ) break;
-      return_buffer (context, paramtype, returnv, this->data,
+      return_buffer (context, returnv, this->data,
                      this->dataindex + 1);
       break;
    }
@@ -488,13 +488,13 @@ void hex_decoder_class_func (struct hex_data *this,
                              const struct context_rmcios *context, int id,
                              enum function_rmcios function,
                              enum type_rmcios paramtype,
-                             union param_rmcios returnv,
+                             struct combo_rmcios *returnv,
                              int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "Hex decoder. Decodes hex string to binary.\r\n"
                      "create hex_decoder newname\r\n"
                      "setup newname bytes(0)\r\n"
@@ -534,7 +534,7 @@ void hex_decoder_class_func (struct hex_data *this,
    case write_rmcios:
       if (num_params < 1 && this != 0)
       {
-         return_buffer (context, paramtype, returnv, this->data,
+         return_buffer (context, returnv, this->data,
                         this->dataindex);
          this->dataindex = 0;
          break;
@@ -572,13 +572,13 @@ void hex_decoder_class_func (struct hex_data *this,
             }
          }
          buffer[plen] = 0;
-         return_string (context, paramtype, returnv, buffer);
+         return_string (context, returnv, buffer);
       }
       break;
 
    case read_rmcios:
       if (this == 0 || this->data==0) break;
-      return_buffer (context, paramtype, returnv, this->data,
+      return_buffer (context, returnv, this->data,
                      this->dataindex + 1);
       break;
    }
@@ -616,13 +616,13 @@ void binary_decoder_class_func (struct binary_decoder_data *this,
                                 const struct context_rmcios *context, int id,
                                 enum function_rmcios function,
                                 enum type_rmcios paramtype,
-                                union param_rmcios returnv,
+                                struct combo_rmcios *returnv,
                                 int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
             "binary decoder. decodes binary data from binary stream\r\n"
             "create bin_dec newname\r\n"
             "setup newname field1_bits(8) | start_offset(0) | repetitions(0)"
@@ -748,7 +748,7 @@ void binary_decoder_class_func (struct binary_decoder_data *this,
    case read_rmcios:
       if (this == 0)
          break;
-      return_int (context, paramtype, returnv, this->latest_field);
+      return_int (context, returnv, this->latest_field);
       break;
    }
 }
@@ -774,13 +774,13 @@ void binary_encoder_class_func (struct binary_encoder_data *this,
                                 const struct context_rmcios *context, int id,
                                 enum function_rmcios function,
                                 enum type_rmcios paramtype,
-                                union param_rmcios returnv,
+                                struct combo_rmcios *returnv,
                                 int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "binary encoder. Encodes numbers to binary stream\r\n"
                      "create bin_enc newname\r\n"
                      "setup newname field1_bits(8) | wordsize(8) | endian(1)"
@@ -878,7 +878,7 @@ void binary_encoder_class_func (struct binary_encoder_data *this,
    case read_rmcios:
       if (this == 0)
          break;
-      return_int (context, paramtype, returnv, this->latest_word);
+      return_int (context, returnv, this->latest_word);
       break;
    }
 }
