@@ -46,14 +46,14 @@ void logger_class_func (struct logger_data *this,
                         const struct context_rmcios *context, int id,
                         enum function_rmcios function,
                         enum type_rmcios paramtype,
-                        union param_rmcios returnv,
+                        struct combo_rmcios *returnv,
                         int num_params, const union param_rmcios param)
 {
    int pstrlen;
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
               "help for logger channel\r\n"
               "create logger newname\r\n"
               "setup newname reset_char log_delimiter log_channels... \r\n"
@@ -120,11 +120,16 @@ void logger_class_func (struct logger_data *this,
          int j;
          for (j = 0; j < this->num_logged; j++)
          {
+            struct combo_rmcios destination = {
+               .paramtype = channel_rmcios,
+               .num_params = 1,
+               .param.channel = linked_channels (context, id)
+            };
+            
             context->run_channel (context, this->log_channels[j],
                                   read_rmcios,
                                   channel_rmcios,
-                                  (union param_rmcios)
-                                  linked_channels (context, id), 0,
+                                  &destination, 0,
                                   (const union param_rmcios) 0);
 
             if (j < this->num_logged - 1)
@@ -149,7 +154,8 @@ void logger_class_func (struct logger_data *this,
          s = param_to_string (context, paramtype, param, 0, pstrlen, str);
          while (*s != 0)
          {
-            if (*s == 0)
+            if (*s
+                  == 0)
                break;
 
             if (this->newline == 1 && *s != this->reset_char)   
@@ -157,13 +163,18 @@ void logger_class_func (struct logger_data *this,
             {
                for (j = 0; j < this->num_logged; j++)
                {
+                  struct combo_rmcios destination = {
+                     .paramtype = channel_rmcios,
+                     .num_params = 1,
+                     .param.channel = linked_channels (context, id)
+                  };
+
                   context->run_channel (context,
                                         this->log_channels[j],
                                         read_rmcios,
                                         channel_rmcios,
-                                        (union param_rmcios)
-                                        linked_channels
-                                        (context, id), 0,
+                                        &destination, 
+                                        0,
                                         (const union param_rmcios) 0);
 
                   wstr[0] = this->delimiter_char;
@@ -201,13 +212,13 @@ void checksum_class_func (struct checksum_data *this,
                           const struct context_rmcios *context, int id,
                           enum function_rmcios function,
                           enum type_rmcios paramtype,
-                          union param_rmcios returnv,
+                          struct combo_rmcios *returnv,
                           int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "Checksum channel -"
                      " channel for creating and checking 8bit two's complement"
                      " modular checksums.\r\n"
@@ -287,7 +298,7 @@ void checksum_class_func (struct checksum_data *this,
       if (this == 0)
          break;
       // Return the stored checksum
-      return_int (context, paramtype, returnv, this->checksum);
+      return_int (context, returnv, this->checksum);
       // Send reset command (empty write) to linked channels
       // when checksum is correct(0) 
       if (this->checksum == 0)
@@ -313,13 +324,13 @@ void lcg_random_class_func (struct lcg_data *this,
                             const struct context_rmcios *context, int id,
                             enum function_rmcios function,
                             enum type_rmcios paramtype,
-                            union param_rmcios returnv,
+                            struct combo_rmcios *returnv,
                             int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "LCG channel -"
                      " Linear congruential random number generator \r\n"
                      " seed = (a * seed + c) % modulus -> out=seed*scale \r\n"
@@ -379,7 +390,7 @@ void lcg_random_class_func (struct lcg_data *this,
       break;
 
    case read_rmcios:
-      return_float (context, paramtype, returnv, this->scale * this->seed);
+      return_float (context, returnv, this->scale * this->seed);
       break;
    }
 }
@@ -397,13 +408,13 @@ void filter_class_func (struct filter_data *this,
                         const struct context_rmcios *context, int id,
                         enum function_rmcios function,
                         enum type_rmcios paramtype,
-                        union param_rmcios returnv,
+                        struct combo_rmcios *returnv,
                         int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "filter channel\r\n"
                      "create filter newname\r\n"
                      "setup newname value | test\r\n"
@@ -594,13 +605,13 @@ void crc16_class_func (struct crc16_data *this,
                        const struct context_rmcios *context, int id,
                        enum function_rmcios function,
                        enum type_rmcios paramtype,
-                       union param_rmcios returnv,
+                       struct combo_rmcios *returnv,
                        int num_params, const union param_rmcios param)
 {
    switch (function)
    {
       case help_rmcios:
-         return_string (context, paramtype, returnv,
+         return_string (context, returnv,
                "CRC channel - "
                "channel for creating and checking CRC checksums.\r\n"
                "create crc newname | bits(16)\r\n"
@@ -710,7 +721,7 @@ void crc16_class_func (struct crc16_data *this,
          else
             CRC16 = this->xor_out ^ this->CRC16;
 
-         return_int (context, paramtype, returnv, CRC16);
+         return_int (context, returnv, CRC16);
          break;
 
       case write_rmcios:
@@ -735,7 +746,7 @@ void crc16_class_func (struct crc16_data *this,
                }
 
                // Reflect output
-               return_int (context, paramtype, returnv,
+               return_int (context, returnv,
                      BitReverseTable256[CRC16 >> 8] |
                      BitReverseTable256[CRC16 & 0xFF] << 8);
             }
@@ -754,7 +765,7 @@ void crc16_class_func (struct crc16_data *this,
 
             write_binary (context, linked_channels (context, id),
                   (char *) &CRC16, 2, 0, 0);
-            return_int (context, paramtype, returnv, CRC16);
+            return_int (context, returnv, CRC16);
             this->CRC16 = this->init;
             break;
          }

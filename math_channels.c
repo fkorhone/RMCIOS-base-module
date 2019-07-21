@@ -62,7 +62,8 @@ void generic_operator_class_func (struct oper *this,
                                   const struct context_rmcios *context,
                                   int id, enum function_rmcios function,
                                   enum type_rmcios paramtype,
-                                  union param_rmcios returnv, int num_params,
+                                  struct combo_rmcios *returnv,
+                                  int num_params,
                                   const union param_rmcios param,
                                   float (*opfunc) (float, float))
 {
@@ -105,7 +106,7 @@ void generic_operator_class_func (struct oper *this,
       if (this->valueB_channel != 0)
          // update B from channel
          this->valueB = read_f (context, this->valueB_channel); 
-      return_float (context, paramtype, returnv,
+      return_float (context, returnv,
                     opfunc (this->valueA, this->valueB));
       break;
    default:
@@ -120,13 +121,13 @@ void plus_class_func (struct oper *this,
                       const struct context_rmcios *context, int id,
                       enum function_rmcios function,
                       enum type_rmcios paramtype,
-                      union param_rmcios returnv,
+                      struct combo_rmcios *returnv,
                       int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "help for plus channel\r\n"
                      "calculates A+B\r\n"
                      " create plus newname\r\n"
@@ -168,13 +169,13 @@ void minus_class_func (struct oper *this,
                        const struct context_rmcios *context, int id,
                        enum function_rmcios function,
                        enum type_rmcios paramtype,
-                       union param_rmcios returnv,
+                       struct combo_rmcios *returnv,
                        int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "help for minus channel\r\n"
                      "A-B\r\n"
                      " create minus newname\r\n"
@@ -212,13 +213,13 @@ void multiply_class_func (struct oper *this,
                           const struct context_rmcios *context, int id,
                           enum function_rmcios function,
                           enum type_rmcios paramtype,
-                          union param_rmcios returnv,
+                          struct combo_rmcios *returnv,
                           int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "help for multiply channel\r\n"
                      "A*B\r\n"
                      " create multiply newname\r\n"
@@ -258,13 +259,13 @@ void divide_class_func (struct oper *this,
                         const struct context_rmcios *context, int id,
                         enum function_rmcios function,
                         enum type_rmcios paramtype,
-                        union param_rmcios returnv,
+                        struct combo_rmcios *returnv,
                         int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "help for divide channel:\r\n"
                      "A/B\r\n"
                      " create divide newname\r\n"
@@ -305,14 +306,14 @@ void pow2_class_func (struct oper *this,
                       const struct context_rmcios *context, int id,
                       enum function_rmcios function,
                       enum type_rmcios paramtype,
-                      union param_rmcios returnv,
+                      struct combo_rmcios *returnv,
                       int num_params, const union param_rmcios param)
 {
    //int create =1;
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "help for power of 2:\r\n"
                      "create pow2 newname\r\n"
                      "write newname value # calulate result=value^2 \r\n"
@@ -358,14 +359,14 @@ void linear_interpolation_class_func (struct linear_interpolation_data *this,
                                       const struct context_rmcios *context,
                                       int id, enum function_rmcios function,
                                       enum type_rmcios paramtype,
-                                      union param_rmcios returnv,
+                                      struct combo_rmcios *returnv,
                                       int num_params,
                                       const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "help for linear interpolation channel:\r\n"
                      "create linear_interpolation newname\r\n"
                      "setup newname x1 y1 x2 y2 "
@@ -419,7 +420,7 @@ void linear_interpolation_class_func (struct linear_interpolation_data *this,
    case read_rmcios:
       if (this == 0)
          break;
-      return_float (context, paramtype, returnv, this->y);
+      return_float (context, returnv, this->y);
       break;
    }
 }
@@ -441,13 +442,13 @@ void average_class_func (struct average_data *this,
                          const struct context_rmcios *context, int id,
                          enum function_rmcios function,
                          enum type_rmcios paramtype,
-                         union param_rmcios returnv,
+                         struct combo_rmcios *returnv,
                          int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "average - Channel for calculating average."
                      " (cyclic and user triggered)\r\n"
                      " create average newname\r\n"
@@ -508,7 +509,7 @@ void average_class_func (struct average_data *this,
          this->sum = 0;
          this->sum_items = 0;
 
-         return_float (context, paramtype, returnv, this->average);
+         return_float (context, returnv, this->average);
          break;
       }
 
@@ -535,7 +536,7 @@ void average_class_func (struct average_data *this,
          break;
       else
       {
-         return_float (context, paramtype, returnv, this->average);
+         return_float (context, returnv, this->average);
       }
       break;
    }
@@ -554,13 +555,13 @@ void sum_class_func (struct sum_data *this,
                      const struct context_rmcios *context, int id,
                      enum function_rmcios function,
                      enum type_rmcios paramtype,
-                     union param_rmcios returnv,
+                     struct combo_rmcios *returnv,
                      int num_params, const union param_rmcios param)
 {
    switch (function)
    {
    case help_rmcios:
-      return_string (context, paramtype, returnv,
+      return_string (context, returnv,
                      "average - Channel for calculating sum."
                      " create sum newname\r\n"
                      " write newname value #adds value to sum."
@@ -598,7 +599,7 @@ void sum_class_func (struct sum_data *this,
          break;
       else
       {
-         return_float (context, paramtype, returnv, this->sum);
+         return_float (context, returnv, this->sum);
       }
       break;
    }
