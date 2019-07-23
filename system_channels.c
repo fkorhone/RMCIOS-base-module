@@ -88,7 +88,7 @@ void joint_class_func (void *data,
    case setup_rmcios:
    case read_rmcios:
    case write_rmcios:
-      context->run_channel (context, linked_channels (context, id),
+      run_channel (context, linked_channels (context, id),
                             function, paramtype, returnv, num_params, param);
       break;
    }
@@ -171,7 +171,7 @@ void trigger_class_func (struct trigger_data *this,
          if (num_params > 0)
             break;
       case TRIGGER_ALL:
-         context->run_channel (context, linked_channels (context, id),
+         run_channel (context, linked_channels (context, id),
                                function,
                                paramtype,
                                0,

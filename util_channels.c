@@ -126,7 +126,7 @@ void logger_class_func (struct logger_data *this,
                .param.channel = linked_channels (context, id)
             };
             
-            context->run_channel (context, this->log_channels[j],
+            run_channel (context, this->log_channels[j],
                                   read_rmcios,
                                   channel_rmcios,
                                   &destination, 0,
@@ -169,7 +169,7 @@ void logger_class_func (struct logger_data *this,
                      .param.channel = linked_channels (context, id)
                   };
 
-                  context->run_channel (context,
+                  run_channel (context,
                                         this->log_channels[j],
                                         read_rmcios,
                                         channel_rmcios,
@@ -504,7 +504,7 @@ void filter_class_func (struct filter_data *this,
             // Undefined filter identifier
             return;     
          }
-         context->run_channel (context, linked_channels (context, id),
+         run_channel (context, linked_channels (context, id),
                                function, paramtype, returnv, num_params, param);
       }
       break;
